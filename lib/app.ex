@@ -2,6 +2,7 @@ defmodule App do
   use Application
 
   def start(_type, _args) do
+    TelegramDb.start()
     bot_name = Application.get_env(:app, :bot_name)
 
     unless String.valid?(bot_name) do
