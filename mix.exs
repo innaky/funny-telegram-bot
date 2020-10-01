@@ -20,7 +20,8 @@ defmodule App.Mixfile do
   defp deps do
     [
       {:nadia, "~> 0.6.0"},
-      {:poison, "~> 3.1"}
+      {:poison, "~> 3.1"},
+      {:mnesia_tbot, path: "~/src/mnesia_tbot/"}
     ]
   end
 
