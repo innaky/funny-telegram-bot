@@ -12,6 +12,14 @@ defmodule App.Commands do
     :mnesia_tbot_app.insert_user(%{id: to_string(update.message.from.id), username: update.message.chat.username})
     send_message("Hola, @" <> update.message.chat.username)
   end
+
+  command "get_user" do
+    Logger.log(:info, "Command /get_user")
+    [_command|args] = String.split(update.message.text, " ")
+    username = List.first(args)
+    {:atomic, [{id, username, localtime}]} = :mnesia_tbot_app.get_user(username)
+    send_message("id: " <> id <> " username: " <> username <> " time: " <> localtime)
+  end
   
   command ["hello", "hi"] do
     # Logger module injected from App.Commander
