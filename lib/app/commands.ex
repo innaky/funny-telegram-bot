@@ -14,11 +14,87 @@ defmodule App.Commands do
   end
 
   command "get_user" do
-    Logger.log(:info, "Command /get_user")
+    Logger.log(:info, "Command /get_user")  
     [_command|args] = String.split(update.message.text, " ")
     username = List.first(args)
-    {:atomic, [{id, username, localtime}]} = :mnesia_tbot_app.get_user(username)
-    send_message("id: " <> id <> " username: " <> username <> " time: " <> localtime)
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      {:atomic, [{id, username, localtime}]} = :mnesia_tbot_app.get_user(username)
+      send_message("id: " <> id <> " username: " <> username <> " time: " <> localtime)
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
+  end
+
+  command "get_users" do
+    Logger.log(:info, "Command /get_users")
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      {_, list_of_maps_users} = :mnesia_tbot_app.get_users()
+      list_users = TelegramUtils.send_list_users(list_of_maps_users)
+      concated_list_users = TelegramUtils.concat_elems_list("\n", list_users, "")
+      send_message(concated_list_users)
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
+  end
+
+  command "get_admin" do
+    Logger.log(:info, "Command /get_admin")
+    [_command|args] = String.split(update.message.text, " ")
+    username = List.first(args)
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      {_, admin_data} = :mnesia_tbot_app.get_admin(username)
+      case admin_data do
+	[] ->
+	  send_message("No es administrador.\n")
+	_ ->
+	  [{_, admin_id, admin_username, admin_time}] = admin_data
+	  send_message("id: " <> admin_id <> " username: " <> admin_username
+	    <> " time: " <> admin_time)
+      end
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
+  end
+
+  command "op" do
+    Logger.log(:info, "Command /op")
+    [_command|args] = String.split(update.message.text, " ")
+    password = List.first(args)
+    username = Enum.at(args, 1)
+    case :mnesia_tbot_app.op(password, username) do
+      :ok ->
+	send_message("Ahora eres usuari@ con privilegios.")
+      :false ->
+	send_message("Error: No estas autorizado como administrador.")
+    end
+  end
+
+  command "deop" do
+    Logger.log(:info, "Command /deop")
+    [_command|args] = String.split(update.message.text, " ")
+    username = List.first(args)
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      case :mnesia_tbot_app.deop(username) do
+	:ok ->
+	  send_message("El usuario #{username} fue eliminado de la lista de administradores.")
+	:false ->
+	  send_message("Error el usuario #{username} no es administrador.")
+      end
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
+  end
+  
+  command "get_admins" do
+    Logger.log(:info, "Command /get_admins")
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      {_, list_of_maps_admins} = :mnesia_tbot_app.get_admins()
+      list_admins = TelegramUtils.send_list_users(list_of_maps_admins)
+      concated_list_admins = TelegramUtils.concat_elems_list("\n", list_admins, "")
+      send_message(concated_list_admins)
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
   end
   
   command ["hello", "hi"] do
