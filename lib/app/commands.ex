@@ -96,6 +96,16 @@ defmodule App.Commands do
       send_message("Este comando es sólo para administradores.")
     end
   end
+
+  command "massive" do
+    Logger.log(:info, "Command /massive")
+    [_command|text] = String.split(update.message.text, " ")
+    if :mnesia_tbot_app.is_admin(to_string(update.message.from.id)) do
+      TelegramUtils.send_message_ids(Enum.join(text, " "))
+    else
+      send_message("Este comando es sólo para administradores.")
+    end
+  end
   
   command ["hello", "hi"] do
     # Logger module injected from App.Commander
